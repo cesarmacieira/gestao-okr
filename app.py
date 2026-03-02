@@ -12,11 +12,10 @@ import base64
 # CONFIG
 # ──────────────────────────────────────────────
 st.set_page_config(
-    page_title="Sistema OKR | JF-CE",
+    page_title="Sistema OKR | JFCE",
     page_icon="⚖️",
     layout="wide",
-    initial_sidebar_state="expanded",
-)
+    initial_sidebar_state="expanded",)
 
 NUCLEOS = ["NEGI", "COMUNICAÇÃO", "DTIC", "NGP", "NIAP", "NIST", "NUAUD", "NUFIP", "NUJUD", "TESTE"]
 STATUS_OPTIONS = ["Não Iniciado", "Em Andamento", "Concluído", "Cancelado", "Atrasado"]
