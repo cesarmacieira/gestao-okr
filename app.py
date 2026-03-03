@@ -17,7 +17,7 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded",)
 
-NUCLEOS = ["NEGI", "COMUNICAÇÃO", "DTIC", "NGP", "NIAP", "NIST", "NUAUD", "NUFIP", "NUJUD", "TESTE"]
+NUCLEOS = ["NEGI", "COMUNICAÇÃO", "DTIC", "NGP", "NIAP", "NIST", "NUAUD", "NUFIP", "NUJUD"]
 STATUS_OPTIONS = ["Não Iniciado", "Em Andamento", "Concluído", "Cancelado", "Atrasado"]
 DB_PATH = "okr_sistema.db"
 XLSX_PATH = "okr_backup.xlsx"
@@ -86,80 +86,60 @@ def init_db():
     conn.commit()
     conn.close()
 
-def popular_dados_teste():
+def popular_dados_negi():
     conn = get_conn()
-    existe = conn.execute("SELECT COUNT(*) FROM okr WHERE nucleo='TESTE'").fetchone()[0]
+    existe = conn.execute("SELECT COUNT(*) FROM okr WHERE nucleo='NEGI'").fetchone()[0]
     if existe > 0:
         conn.close()
         return
     cur = conn.cursor()
 
+    # ── OKR 1 ──────────────────────────────────────────────────────────
     cur.execute("""INSERT INTO okr(nucleo,tipo,numero,descricao,gerente,data_inicio,data_fim)
-        VALUES('TESTE','Estratégico','OKR 1','Atingir 90% dos índices de Governança do Questionário iESGO (TCU)',
-        'João Silva','2025-01-07','2026-12-31')""")
+        VALUES('NEGI','Estratégico','OKR 1',
+        'Atingir 80% dos índices de Governança do Questionário iESGO (TCU)',
+        '','2025-01-01','2025-12-31')""")
     okr1 = cur.lastrowid
 
+    # KR 1.1
     cur.execute("""INSERT INTO kr(okr_id,codigo,descricao,valor_ini,valor_alvo,gerente_kr,data_entrega)
-        VALUES(?,'KR 1.1','Identificar os pontos de melhoria',0,100,'Maria Souza','2025-12-19')""", (okr1,))
-    kr11 = cur.lastrowid
-    for n,d,r,s in [("1","Avaliar e priorizar os pontos de melhoria","Carlos","Em Andamento"),
-                     ("2","Classificar os pontos de melhorias por relevância","Ana","Concluído"),
-                     ("3","Desenvolver um cronograma de implantação","Pedro","Concluído")]:
-        cur.execute("INSERT INTO iniciativa(kr_id,numero,descricao,responsavel,status) VALUES(?,?,?,?,?)",(kr11,n,d,r,s))
-    for dt,sm,v,s,c in [("2025-01-15","Semana 03/2025",40,"Em Andamento","Levantamento inicial concluído"),
-                         ("2025-02-05","Semana 06/2025",70,"Em Andamento","Priorização em andamento"),
-                         ("2025-03-01","Semana 09/2025",96,"Em Andamento","Quase concluído")]:
-        cur.execute("INSERT INTO checkin(kr_id,data_ref,semana,valor_atual,status,comentario) VALUES(?,?,?,?,?,?)",(kr11,dt,sm,v,s,c))
+        VALUES(?,'KR 1.1','Identificar 100% dos pontos ainda não implementados',
+        0,100,'','2025-12-31')""", (okr1,))
+    # KR 1.1 sem iniciativas (apenas KR solo)
 
+    # KR 1.2
     cur.execute("""INSERT INTO kr(okr_id,codigo,descricao,valor_ini,valor_alvo,gerente_kr,data_entrega)
-        VALUES(?,'KR 1.2','Implantar 90% dos pontos de melhorias do iESGO',0,100,'Lucas Lima','2025-12-31')""", (okr1,))
+        VALUES(?,'KR 1.2','Implantar, no mínimo, 80% dos pontos de melhorias do IESGO específicos do NEGI',
+        0,80,'','2025-12-31')""", (okr1,))
     kr12 = cur.lastrowid
-    for n,d,r,s in [("1","Executar plano de implantação","Lucas","Não Iniciado"),
-                     ("2","Monitorar execução quinzenal","Fernanda","Em Andamento")]:
-        cur.execute("INSERT INTO iniciativa(kr_id,numero,descricao,responsavel,status) VALUES(?,?,?,?,?)",(kr12,n,d,r,s))
-    cur.execute("INSERT INTO checkin(kr_id,data_ref,semana,valor_atual,status,comentario) VALUES(?,?,?,?,?,?)",
-                (kr12,"2025-03-01","Semana 09/2025",20,"Em Andamento","Início do plano"))
+    for n, d in [
+        ("1.2.1", "Executar as iniciativas relativas à Governança"),
+        ("1.2.2", "Criar um Programa de Integridade com novas 07 iniciativas previstas no IESGO"),
+        ("1.2.3", "Atualizar a Política de gestão de riscos com 10 iniciativas previstas no IESGO"),
+        ("1.2.4", "Implantar RELATÓRIO que contemple os itens do IESGO relativos à gestão estratégica"),
+    ]:
+        cur.execute("INSERT INTO iniciativa(kr_id,numero,descricao,responsavel,status) VALUES(?,?,?,?,?)",
+                    (kr12, n, d, '', 'Não Iniciado'))
 
+    # KR 1.3
     cur.execute("""INSERT INTO kr(okr_id,codigo,descricao,valor_ini,valor_alvo,gerente_kr,data_entrega)
-        VALUES(?,'KR 1.3','Estabelecer plano de ação para demais Núcleos',0,8,'Rafael Costa','2025-06-30')""", (okr1,))
+        VALUES(?,'KR 1.3',
+        'Estabelecer um plano de ação para incentivar os 8 Núcleos da Administração a implantar, no mínimo, 70% dos pontos de melhorias do IESGO',
+        0,8,'','2025-12-31')""", (okr1,))
     kr13 = cur.lastrowid
-    for n,d,r,s in [("1","Reunião com líderes dos núcleos","Rafael","Concluído"),
-                     ("2","Elaborar guia de boas práticas","Juliana","Em Andamento"),
-                     ("3","Apresentar plano ao comitê gestor","Rafael","Não Iniciado")]:
-        cur.execute("INSERT INTO iniciativa(kr_id,numero,descricao,responsavel,status) VALUES(?,?,?,?,?)",(kr13,n,d,r,s))
-    cur.execute("INSERT INTO checkin(kr_id,data_ref,semana,valor_atual,status,comentario) VALUES(?,?,?,?,?,?)",
-                (kr13,"2025-03-01","Semana 09/2025",4,"Em Andamento","4 de 8 núcleos engajados"))
-
-    cur.execute("""INSERT INTO okr(nucleo,tipo,numero,descricao,gerente,data_inicio,data_fim)
-        VALUES('TESTE','Estratégico','OKR 2','Melhorar o índice de satisfação dos usuários para 85%',
-        'Ana Paula','2025-01-07','2026-12-31')""")
-    okr2 = cur.lastrowid
-
-    cur.execute("""INSERT INTO kr(okr_id,codigo,descricao,valor_ini,valor_alvo,gerente_kr,data_entrega)
-        VALUES(?,'KR 2.1','Implementar pesquisa de satisfação trimestral',0,4,'Carla Dias','2025-12-31')""", (okr2,))
-    kr21 = cur.lastrowid
-    for n,d,r,s in [("1","Criar formulário de pesquisa","Carla","Concluído"),
-                     ("2","Aplicar 1ª rodada de pesquisa","Bruno","Concluído"),
-                     ("3","Analisar resultados e propor melhorias","Carla","Em Andamento")]:
-        cur.execute("INSERT INTO iniciativa(kr_id,numero,descricao,responsavel,status) VALUES(?,?,?,?,?)",(kr21,n,d,r,s))
-    cur.execute("INSERT INTO checkin(kr_id,data_ref,semana,valor_atual,status,comentario) VALUES(?,?,?,?,?,?)",
-                (kr21,"2025-03-01","Semana 09/2025",1,"Em Andamento","1ª pesquisa aplicada"))
-
-    cur.execute("""INSERT INTO kr(okr_id,codigo,descricao,valor_ini,valor_alvo,gerente_kr,data_entrega)
-        VALUES(?,'KR 2.2','Reduzir tempo médio de resposta para 3 dias úteis',10,3,'Diego Melo','2025-09-30')""", (okr2,))
-    kr22 = cur.lastrowid
-    for n,d,r,s in [("1","Mapear fluxo atual de demandas","Diego","Concluído"),
-                     ("2","Implementar sistema de triagem","Patrícia","Em Andamento"),
-                     ("3","Treinar equipe no novo fluxo","Diego","Não Iniciado")]:
-        cur.execute("INSERT INTO iniciativa(kr_id,numero,descricao,responsavel,status) VALUES(?,?,?,?,?)",(kr22,n,d,r,s))
-    cur.execute("INSERT INTO checkin(kr_id,data_ref,semana,valor_atual,status,comentario) VALUES(?,?,?,?,?,?)",
-                (kr22,"2025-03-01","Semana 09/2025",6,"Em Andamento","Reduzindo gradualmente"))
+    for n, d in [
+        ("1.3.1", "Plano - PA 0004127-57.2024.4.05.7600, inserido relatório de melhorias aos Núcleos e Seções"),
+        ("1.3.2", "Elaborar planilha de acompanhamento das ações do iESGO aos Núcleos envolvidos"),
+        ("1.3.3", "Encaminhar planilha de acompanhamento aos Núcleos envolvidos no iESGO a partir do PA 0004127-57.2024.4.05.7600"),
+    ]:
+        cur.execute("INSERT INTO iniciativa(kr_id,numero,descricao,responsavel,status) VALUES(?,?,?,?,?)",
+                    (kr13, n, d, '', 'Não Iniciado'))
 
     conn.commit()
     conn.close()
 
 init_db()
-popular_dados_teste()
+popular_dados_negi()
 
 # ──────────────────────────────────────────────
 # QUERIES
@@ -191,13 +171,15 @@ def get_iniciativas(kr_id):
     return run_query("SELECT * FROM iniciativa WHERE kr_id=? ORDER BY CAST(numero AS INTEGER)", (kr_id,))
 
 def get_checkins(kr_id):
-    return run_query("SELECT * FROM checkin WHERE kr_id=? ORDER BY data_ref DESC", (kr_id,))
+    return run_query("SELECT * FROM checkin WHERE kr_id=? ORDER BY data_ref DESC, id DESC", (kr_id,))
 
 def calc_progresso_kr(ini, alvo, checkins_df):
     ini, alvo = float(ini or 0), float(alvo or 100)
     if checkins_df is None or checkins_df.empty:
         return 0.0
-    ult = checkins_df.sort_values("data_ref", ascending=False).iloc[0]["valor_atual"]
+    # Ordena por data DESC e id DESC para garantir que o registro mais recente vença
+    df_ord = checkins_df.sort_values(["data_ref","id"], ascending=[False, False])
+    ult = df_ord.iloc[0]["valor_atual"]
     if ult is None:
         return 0.0
     if abs(alvo - ini) < 0.0001:
@@ -259,37 +241,38 @@ st.markdown("""
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
 
 :root {
-  /* Paleta principal: Azul institucional refinado */
-  --navy:      #0C2461;
-  --navy-mid:  #1a3a7a;
-  --blue:      #1E5FBB;
-  --blue-mid:  #2878D6;
-  --blue-lit:  #4A9EE8;
-  --sky:       #D6E8FA;
-  --sky-lit:   #EBF4FD;
-  --sky-dim:   #C8DFF7;
+  /* Paleta principal: Azul institucional com alto contraste */
+  --navy:      #0A1F5C;
+  --navy-mid:  #1740A0;
+  --blue:      #1857D4;
+  --blue-mid:  #2D7DD2;
+  --blue-lit:  #5BA3E8;
+  --sky:       #CCDFF7;
+  --sky-lit:   #EAF4FD;
+  --sky-dim:   #B8D4F0;
 
-  /* Neutros (sem cinzas frios isolados) */
-  --off-white: #F7F9FC;
+  /* Neutros */
+  --off-white: #F4F7FC;
   --white:     #FFFFFF;
-  --slate:     #3D5475;
-  --slate-mid: #5A728F;
-  --slate-lit: #8BA4BF;
-  --border:    #C8D8EA;
+  --slate:     #2C3E6B;
+  --slate-mid: #4A6080;
+  --slate-lit: #7A96B8;
+  --border:    #B8CCE4;
 
-  /* Semânticos */
-  --green:     #0D7A45;
-  --green-bg:  #E6F5EE;
-  --amber:     #B45309;
-  --amber-bg:  #FEF3C7;
-  --red:       #B91C1C;
-  --red-bg:    #FEE2E2;
-  --gray-s:    #64748B;
-  --gray-bg:   #F1F5F9;
+  /* Semânticos com alto contraste */
+  --green:     #096B38;
+  --green-bg:  #D4EFE1;
+  --amber:     #92400E;
+  --amber-bg:  #FDE68A;
+  --red:       #9B1010;
+  --red-bg:    #FECACA;
+  --gray-s:    #475569;
+  --gray-bg:   #E8EEF6;
 
-  /* Gold accent */
-  --gold:      #D4A017;
-  --gold-bg:   #FEF9E7;
+  /* Gold accent mais vibrante */
+  --gold:      #C48C00;
+  --gold-bg:   #FEF3C7;
+  --gold-text: #7C5A00;
 }
 
 html, body, [class*="css"] {
@@ -373,24 +356,26 @@ html, body, [class*="css"] {
   margin: 12px 20px !important;
 }
 [data-testid="stSidebar"] .stDownloadButton > button {
-  background: var(--gold) !important;
-  color: var(--navy) !important;
-  border: none;
+  background: rgba(255,255,255,0.10) !important;
+  color: #CCDFF7 !important;
+  border: 1px solid rgba(255,255,255,0.20) !important;
   border-radius: 6px;
-  font-weight: 700;
+  font-weight: 600;
   font-size: 0.84rem;
   width: calc(100% - 40px) !important;
   margin: 0 20px !important;
   padding: 10px 16px !important;
 }
 [data-testid="stSidebar"] .stDownloadButton > button:hover {
-  background: #c49010 !important;
+  background: rgba(255,255,255,0.18) !important;
+  color: #FFFFFF !important;
+  border-color: rgba(255,255,255,0.38) !important;
   transform: none !important;
 }
 
 /* ── HEADER ── */
 .header-bar {
-  background: linear-gradient(135deg, #0C2461 0%, #1a3a7a 50%, #1E5FBB 100%);
+  background: linear-gradient(135deg, #0A1F5C 0%, #1740A0 50%, #1857D4 100%);
   padding: 14px 28px;
   border-radius: 12px;
   display: flex;
@@ -437,45 +422,56 @@ div[data-testid="metric-container"] [data-testid="stMetricValue"] {
 /* ── TABS ── */
 .stTabs { width: 100%; }
 .stTabs [data-baseweb="tab-list"] {
-  background: var(--sky-lit);
-  border-radius: 10px;
+  background: #EAF1FB;
+  border-radius: 8px;
   padding: 4px;
-  gap: 3px;
+  gap: 2px;
   width: 100%;
   display: flex;
-  border: 1px solid var(--border);
+  border: 2px solid #B8D0EE;
 }
 .stTabs [data-baseweb="tab"] {
-  border-radius: 7px;
+  border-radius: 6px;
   font-weight: 600;
-  font-size: 0.83rem;
-  color: var(--slate);
+  font-size: 0.82rem;
+  color: #2C4880 !important;
   flex: 1;
   text-align: center;
-  padding: 10px 6px;
+  padding: 9px 6px;
   white-space: nowrap;
+  border-right: 1px solid #C8D8EE;
+  transition: background 0.15s;
+}
+.stTabs [data-baseweb="tab"]:last-child {
+  border-right: none;
+}
+.stTabs [data-baseweb="tab"]:hover {
+  background: #D0E4F7 !important;
+  color: #0A1F5C !important;
 }
 .stTabs [aria-selected="true"] {
-  background: var(--blue) !important;
-  color: white !important;
-  box-shadow: 0 2px 8px rgba(30,95,187,0.25);
+  background: linear-gradient(135deg, #0A1F5C 0%, #1740A0 50%, #1857D4 100%) !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 2px 8px rgba(10,31,92,0.35);
+  border-right-color: transparent !important;
 }
 .stTabs [data-baseweb="tab-panel"] { padding-top: 20px; }
 
 /* ── BOTÕES ── */
 .stButton > button, .stFormSubmitButton > button {
-  background: var(--blue) !important;
+  background: linear-gradient(135deg, #0A1F5C 0%, #1740A0 50%, #1857D4 100%) !important;
   color: white !important;
   border: none;
   border-radius: 7px;
   font-weight: 600;
   font-family: 'IBM Plex Sans', sans-serif;
-  transition: background 0.2s;
+  transition: all 0.2s;
   padding: 8px 20px;
+  letter-spacing: 0.3px;
 }
 .stButton > button:hover, .stFormSubmitButton > button:hover {
-  background: var(--navy-mid) !important;
-  box-shadow: 0 3px 12px rgba(12,36,97,0.25);
+  background: linear-gradient(135deg, #1740A0 0%, #1857D4 100%) !important;
+  box-shadow: 0 4px 14px rgba(10,31,92,0.35);
   transform: translateY(-1px);
 }
 
@@ -550,14 +546,13 @@ div[data-testid="metric-container"] [data-testid="stMetricValue"] {
 .prog-ini-wrap {
   background: #FDE68A;
   border-radius: 99px;
-  height: 6px;
+  height: 8px;
   width: 100%;
-  margin: 5px 0 2px 44px;
+  margin: 6px 0 2px;
   overflow: hidden;
-  width: calc(100% - 44px);
 }
 .prog-ini-fill {
-  height: 6px;
+  height: 8px;
   border-radius: 99px;
   background: linear-gradient(90deg, var(--gold), #F59E0B);
   transition: width 0.4s ease;
@@ -566,7 +561,6 @@ div[data-testid="metric-container"] [data-testid="stMetricValue"] {
   font-size: 0.73rem;
   color: var(--amber);
   font-weight: 600;
-  margin-left: 44px;
   display: block;
 }
 .prog-kr-label {
@@ -591,9 +585,9 @@ details[open] summary { border-radius: 10px 10px 0 0 !important; }
 
 /* ── FORMULÁRIOS ── */
 .stForm {
-  background: var(--sky-lit);
+  background: #F0F6FF;
   border-radius: 12px;
-  border: 1px solid var(--border);
+  border: 2px solid #B8D0EE;
   padding: 4px !important;
 }
 div[data-testid="stSelectbox"] label,
@@ -601,10 +595,113 @@ div[data-testid="stTextInput"] label,
 div[data-testid="stTextArea"] label,
 div[data-testid="stNumberInput"] label,
 div[data-testid="stDateInput"] label {
-  font-weight: 600;
-  color: var(--slate);
-  font-size: 0.81rem;
+  font-weight: 700;
+  color: #0A1F5C !important;
+  font-size: 0.82rem;
+  letter-spacing: 0.2px;
 }
+/* ════════════════════════════════════════════════════════
+   INPUTS — borda uniforme #9BB8D8, fundo branco
+   Estratégia: estilizar sempre o WRAPPER externo,
+   nunca o input nativo (evita borda dupla).
+   ════════════════════════════════════════════════════════ */
+
+/* 1. SelectBox e DateInput compartilham [data-baseweb="select"/"input"] */
+div[data-baseweb="select"] > div {
+  background-color: #FFFFFF !important;
+  border: 1.5px solid #9BB8D8 !important;
+  border-radius: 6px !important;
+}
+div[data-baseweb="select"] > div:focus-within {
+  border-color: #1857D4 !important;
+  box-shadow: 0 0 0 3px rgba(24,87,212,0.12) !important;
+}
+div[data-baseweb="input"] {
+  background-color: #FFFFFF !important;
+  border: 1.5px solid #9BB8D8 !important;
+  border-radius: 6px !important;
+}
+div[data-baseweb="input"]:focus-within {
+  border-color: #1857D4 !important;
+  box-shadow: 0 0 0 3px rgba(24,87,212,0.12) !important;
+}
+/* Filhos dos wrappers acima: sem borda própria */
+div[data-baseweb="input"] input,
+div[data-baseweb="select"] input {
+  background-color: #FFFFFF !important;
+  border: none !important;
+  box-shadow: none !important;
+  color: #0A1F5C !important;
+}
+
+/* 2. TextInput — o Streamlit usa [data-testid="stTextInput"] > div
+      que contém um [data-baseweb="base-input"] internamente.
+      Forçamos borda no wrapper stTextInput > div e zeramos
+      qualquer borda que o baseweb possa adicionar dentro. */
+div[data-testid="stTextInput"] > div {
+  background-color: #FFFFFF !important;
+  border: 1.5px solid #9BB8D8 !important;
+  border-radius: 6px !important;
+  padding: 0 !important;
+}
+div[data-testid="stTextInput"] > div:focus-within {
+  border-color: #1857D4 !important;
+  box-shadow: 0 0 0 3px rgba(24,87,212,0.12) !important;
+}
+/* Zerar todas as bordas internas do stTextInput */
+div[data-testid="stTextInput"] > div > div,
+div[data-testid="stTextInput"] input {
+  background-color: #FFFFFF !important;
+  border: none !important;
+  box-shadow: none !important;
+  color: #0A1F5C !important;
+  border-radius: 0 !important;
+}
+
+/* 3. NumberInput — wrapper externo recebe a borda */
+div[data-testid="stNumberInput"] > div {
+  background-color: #FFFFFF !important;
+  border: 1.5px solid #9BB8D8 !important;
+  border-radius: 6px !important;
+  overflow: hidden;
+}
+div[data-testid="stNumberInput"] > div:focus-within {
+  border-color: #1857D4 !important;
+  box-shadow: 0 0 0 3px rgba(24,87,212,0.12) !important;
+}
+div[data-testid="stNumberInput"] > div input {
+  background-color: #FFFFFF !important;
+  border: none !important;
+  box-shadow: none !important;
+  color: #0A1F5C !important;
+}
+/* Botões +/− do NumberInput: fundo branco */
+div[data-testid="stNumberInput"] > div button {
+  background-color: #FFFFFF !important;
+  border-left: 1px solid #C8D8EE !important;
+  color: #4A6080 !important;
+}
+div[data-testid="stNumberInput"] > div button:hover {
+  background-color: #EAF1FB !important;
+  color: #0A1F5C !important;
+}
+
+/* 4. TextArea */
+div[data-testid="stTextArea"] textarea {
+  background-color: #FFFFFF !important;
+  border: 1.5px solid #9BB8D8 !important;
+  border-radius: 6px !important;
+  color: #0A1F5C !important;
+}
+div[data-testid="stTextArea"] textarea:focus {
+  border-color: #1857D4 !important;
+  box-shadow: 0 0 0 3px rgba(24,87,212,0.12) !important;
+  outline: none !important;
+}
+
+/* 5. Dropdown list */
+[data-baseweb="popover"] ul, [data-baseweb="menu"] { background: #FFFFFF !important; }
+[data-baseweb="menu"] li:hover { background: #EAF1FB !important; }
 
 /* ── TÍTULO DE SEÇÃO ── */
 .sec-title {
@@ -639,6 +736,31 @@ div[data-testid="stDateInput"] label {
 
 /* ── DATAFRAME ── */
 .stDataFrame { border-radius: 10px; overflow: hidden; border: 1px solid var(--border) !important; }
+
+/* ── ALERTAS / MENSAGENS ── */
+div[data-testid="stAlert"] {
+  border-radius: 8px !important;
+  border-left-width: 4px !important;
+}
+
+/* ── SECTION TITLE — borda gradiente simulada ── */
+.sec-title {
+  border-left: 4px solid #1740A0;
+}
+
+/* ── CAPTION / HELP TEXT ── */
+div[data-testid="stCaptionContainer"] p {
+  color: var(--slate-mid) !important;
+  font-size: 0.80rem !important;
+}
+
+/* ── SUBHEADER ── */
+h3 {
+  color: var(--navy) !important;
+  font-weight: 700 !important;
+  font-size: 1.05rem !important;
+  margin-bottom: 12px !important;
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -702,6 +824,20 @@ with st.sidebar:
 # ──────────────────────────────────────────────
 # HELPERS VISUAIS
 # ──────────────────────────────────────────────
+def gestores_tags(gestores_str):
+    """Renderiza lista de gestores como tags visuais."""
+    if not gestores_str or str(gestores_str).strip() in ("", "None", "nan"):
+        return '<span style="color:#7A96B8;font-size:0.82rem;">—</span>'
+    nomes = [g.strip() for g in str(gestores_str).split(",") if g.strip()]
+    tags = "".join(
+        f'<span style="background:#EAF4FD;color:#1740A0;border:1px solid #B8D4F0;'
+        f'border-radius:5px;padding:2px 8px;font-size:0.75rem;font-weight:600;'
+        f'margin-right:4px;display:inline-block;">'
+        f'👤 {n}</span>'
+        for n in nomes
+    )
+    return tags
+
 def status_tag(status):
     mapa  = {"Concluído":"tag-c","Em Andamento":"tag-a","Não Iniciado":"tag-n","Atrasado":"tag-at","Cancelado":"tag-ca"}
     icons = {"Concluído":"✓","Em Andamento":"◎","Não Iniciado":"○","Atrasado":"⚑","Cancelado":"✕"}
@@ -710,15 +846,26 @@ def status_tag(status):
     return f'<span class="tag {cls}">{ic} {status}</span>'
 
 def barra_kr(pct):
+    cor = "#1857D4" if pct >= 70 else "#C48C00" if pct >= 40 else "#9B1010"
     return f"""
-    <div class="prog-kr-wrap"><div class="prog-kr-fill" style="width:{pct:.1f}%;"></div></div>
-    <span class="prog-kr-label">Progresso KR: <b>{pct:.1f}%</b></span>
+    <div style="display:flex;align-items:center;gap:8px;margin:4px 0 2px;">
+      <span style="font-size:0.72rem;color:#4A6080;font-weight:600;min-width:90px;">📊 Progresso KR</span>
+      <div style="flex:1;background:#B8D4F0;border-radius:99px;height:10px;overflow:hidden;">
+        <div style="width:{pct:.1f}%;height:10px;border-radius:99px;background:linear-gradient(90deg,{cor},{cor}99);transition:width 0.4s;"></div>
+      </div>
+      <span style="font-size:0.78rem;font-weight:700;color:{cor};min-width:46px;text-align:right;">{pct:.1f}%</span>
+    </div>
     """
 
 def barra_ini(pct, total, concluidas):
     return f"""
-    <div class="prog-ini-wrap"><div class="prog-ini-fill" style="width:{pct:.1f}%;"></div></div>
-    <span class="prog-ini-label">Iniciativas concluídas: <b>{int(concluidas)}/{int(total)}</b> ({pct:.0f}%)</span>
+    <div style="display:flex;align-items:center;gap:8px;margin:4px 0 2px;">
+      <span style="font-size:0.72rem;color:#92400E;font-weight:600;min-width:90px;">🗂️ Iniciativas</span>
+      <div style="flex:1;background:#FDE68A;border-radius:99px;height:10px;overflow:hidden;">
+        <div style="width:{pct:.1f}%;height:10px;border-radius:99px;background:linear-gradient(90deg,#C48C00,#F59E0B);transition:width 0.4s;"></div>
+      </div>
+      <span style="font-size:0.78rem;font-weight:700;color:#92400E;min-width:46px;text-align:right;">{int(concluidas)}/{int(total)}</span>
+    </div>
     """
 
 
@@ -729,13 +876,22 @@ if "Visão" in pagina:
     st.markdown('<div class="sec-title">🏠 Visão Hierárquica</div>', unsafe_allow_html=True)
     st.caption("OKR → KR → Iniciativas com progresso em tempo real")
 
-    cf1, cf2 = st.columns([1, 3])
-    f_nucleo = cf1.selectbox("Núcleo", ["Todos"] + NUCLEOS, key="vh_n")
+    cf1, cf2, cf3 = st.columns([1, 1, 2])
+    f_nucleo = cf1.selectbox("Núcleo", NUCLEOS, key="vh_n")
     f_tipo   = cf2.selectbox("Tipo OKR", ["Todos", "Estratégico", "Tático/Departamental"], key="vh_t")
 
-    okrs_all = get_okrs() if f_nucleo == "Todos" else get_okrs(f_nucleo)
+    okrs_all = get_okrs(f_nucleo)
     if f_tipo != "Todos":
         okrs_all = okrs_all[okrs_all.tipo == f_tipo]
+
+    if not okrs_all.empty:
+        okr_opts = ["Todos os OKRs"] + [f"{r.numero} — {r.descricao[:60]}" for r in okrs_all.itertuples()]
+        f_okr = cf3.selectbox("OKR", okr_opts, key="vh_okr")
+        if f_okr != "Todos os OKRs":
+            sel_num = f_okr.split(" — ")[0].strip()
+            okrs_all = okrs_all[okrs_all.numero == sel_num]
+    else:
+        cf3.selectbox("OKR", ["—"], key="vh_okr", disabled=True)
 
     if okrs_all.empty:
         st.info("Nenhum OKR encontrado. Use Cadastro para adicionar.")
@@ -758,15 +914,14 @@ if "Visão" in pagina:
 
             with st.expander(
                 f"🎯  {okr.numero}  —  {okr.descricao}",
-                expanded=True
+                expanded=False
             ):
                 c1, c2, c3 = st.columns([3, 2, 2])
                 c1.markdown(
                     f'<span class="tag tag-nucleo">{okr.nucleo}</span>'
                     f'<span class="tag tag-tipo">{okr.tipo}</span>',
-                    unsafe_allow_html=True,
-                )
-                c2.markdown(f"👤 **{okr.gerente or '—'}**")
+                    unsafe_allow_html=True,)
+                c2.markdown(gestores_tags(okr.gerente), unsafe_allow_html=True)
                 c3.markdown(f"📅 {okr.data_inicio or '—'} → {okr.data_fim or '—'}")
 
                 # Barras do OKR
@@ -796,8 +951,8 @@ if "Visão" in pagina:
                     st.markdown(f"""
                     <div class="kr-card">
                       <b>📌 {kr.codigo}</b> — {kr.descricao}<br>
-                      <small style="color:#5A728F;">
-                        👤 {kr.gerente_kr or '—'} &nbsp;·&nbsp;
+                      <small style="color:#4A6080;">
+                        {gestores_tags(kr.gerente_kr)} &nbsp;·&nbsp;
                         🎯 Meta: <b>{kr.valor_ini} → {kr.valor_alvo}</b> &nbsp;·&nbsp;
                         📅 {kr.data_entrega or '—'} &nbsp;·&nbsp;
                         {status_tag(ult_status) if ult_status else '<span class="tag tag-n">○ Sem check-in</span>'}
@@ -820,7 +975,7 @@ if "Visão" in pagina:
                         st.markdown(f"""
                         <div class="inic-card">
                           ▶ <b>Iniciativa {ini.numero}:</b> {ini.descricao}
-                          &nbsp;·&nbsp; 👤 {ini.responsavel or '—'}
+                          &nbsp;·&nbsp; {gestores_tags(ini.responsavel)}
                           &nbsp;·&nbsp; {status_tag(ini.status)}
                         </div>
                         """, unsafe_allow_html=True)
@@ -836,23 +991,21 @@ if "Visão" in pagina:
 elif "Cadastro" in pagina:
     st.markdown('<div class="sec-title">🎯 Cadastro de OKR, KR e Iniciativas</div>', unsafe_allow_html=True)
 
-    t1,t2,t3,t4,t5,t6 = st.tabs([
-        "➕ Novo OKR", "➕ Novo KR", "➕ Nova Iniciativa",
-        "✏️ Editar OKR", "✏️ Editar KR", "✏️ Editar Iniciativa",
-    ])
+    t1,t2,t3,t4,t5,t6 = st.tabs(["➕ Novo OKR", "➕ Novo KR", "➕ Nova Iniciativa",
+        "✏️ Editar OKR", "✏️ Editar KR", "✏️ Editar Iniciativa",])
 
     with t1:
         st.subheader("Cadastrar Objetivo (OKR)")
         with st.form("f_okr", clear_on_submit=True):
-            c1,c2,c3 = st.columns([1.5,1.5,1])
-            nuc = c1.selectbox("Núcleo *", NUCLEOS)
-            tip = c2.selectbox("Tipo *", ["Estratégico","Tático/Departamental"])
-            num = c3.text_input("Número (ex: OKR 1) *")
-            dsc = st.text_area("Descrição do Objetivo *", height=80)
-            c4,c5,c6 = st.columns(3)
-            ger = c4.text_input("Gerente do OKR")
-            di  = c5.date_input("Data Início", value=date.today())
-            df_ = c6.date_input("Data Conclusão", value=date(date.today().year+1,12,31))
+            r1c1, r1c2, r1c3, r1c4 = st.columns([1.4, 1.4, 0.9, 1.6])
+            nuc = r1c1.selectbox("Núcleo *", NUCLEOS)
+            tip = r1c2.selectbox("Tipo *", ["Estratégico","Tático/Departamental"])
+            num = r1c3.text_input("Número *", placeholder="OKR 1")
+            ger = r1c4.text_input("Gerente(s)", help="Separe por vírgula")
+            r2c1, r2c2, r2c3 = st.columns([3, 1, 1])
+            dsc = r2c1.text_area("Descrição do Objetivo *", height=68, placeholder="Descreva o objetivo...")
+            di  = r2c2.date_input("Data Início", value=date.today())
+            df_ = r2c3.date_input("Data Conclusão", value=date(date.today().year+1,12,31))
             if st.form_submit_button("💾 Cadastrar OKR", type="primary", use_container_width=True):
                 if not num.strip() or not dsc.strip():
                     st.error("Preencha Número e Descrição.")
@@ -868,19 +1021,18 @@ elif "Cadastro" in pagina:
         if okrs_df.empty:
             st.info("Cadastre um OKR primeiro.")
         else:
-            fn = st.selectbox("Filtrar Núcleo", ["Todos"]+NUCLEOS, key="kr_fn")
-            dff = okrs_df if fn=="Todos" else okrs_df[okrs_df.nucleo==fn]
+            fn = st.selectbox("Filtrar Núcleo", NUCLEOS, key="kr_fn")
+            dff = okrs_df[okrs_df.nucleo==fn]
             opc = {f"[{r.nucleo}] {r.numero} — {r.descricao[:55]}": r.id for r in dff.itertuples()}
             with st.form("f_kr", clear_on_submit=True):
                 okr_s = st.selectbox("OKR vinculado *", list(opc.keys()))
-                c1,c2 = st.columns([1,2])
-                cod = c1.text_input("Código KR (ex: KR 1.1) *")
-                dkr = c2.text_input("Descrição *")
-                c3,c4,c5,c6 = st.columns(4)
-                vi = c3.number_input("Valor Inicial", value=0.0, step=1.0)
-                va = c4.number_input("Valor Alvo", value=100.0, step=1.0)
-                gkr = c5.text_input("Gerente KR")
-                de  = c6.date_input("Data Entrega", value=date(date.today().year,12,31))
+                r1c1, r1c2, r1c3, r1c4, r1c5 = st.columns([0.9, 2.2, 0.8, 0.8, 1])
+                cod = r1c1.text_input("Código *", placeholder="KR 1.1")
+                dkr = r1c2.text_input("Descrição *")
+                vi  = r1c3.number_input("Val. Inicial", value=0.0, step=1.0)
+                va  = r1c4.number_input("Val. Alvo", value=100.0, step=1.0)
+                de  = r1c5.date_input("Data Entrega", value=date(date.today().year,12,31))
+                gkr = st.text_input("Gerente(s) do KR", help="Separe por vírgula")
                 if st.form_submit_button("💾 Cadastrar KR", type="primary", use_container_width=True):
                     if not cod.strip() or not dkr.strip():
                         st.error("Preencha Código e Descrição.")
@@ -896,8 +1048,8 @@ elif "Cadastro" in pagina:
         if okrs3.empty:
             st.info("Cadastre OKR e KR primeiro.")
         else:
-            fn3 = st.selectbox("Filtrar Núcleo", ["Todos"]+NUCLEOS, key="in_fn")
-            dff3 = okrs3 if fn3=="Todos" else okrs3[okrs3.nucleo==fn3]
+            fn3 = st.selectbox("Filtrar Núcleo", NUCLEOS, key="in_fn")
+            dff3 = okrs3[okrs3.nucleo==fn3]
             opc3 = {f"[{r.nucleo}] {r.numero} — {r.descricao[:50]}": r.id for r in dff3.itertuples()}
             s_okr = st.selectbox("OKR", list(opc3.keys()), key="in_okr")
             krs3 = get_krs(opc3[s_okr])
@@ -907,12 +1059,11 @@ elif "Cadastro" in pagina:
                 opkr3 = {f"{r.codigo} — {r.descricao[:55]}": r.id for r in krs3.itertuples()}
                 with st.form("f_ini", clear_on_submit=True):
                     s_kr3 = st.selectbox("KR vinculado *", list(opkr3.keys()))
-                    c1,c2 = st.columns([1,3])
-                    num_i = c1.text_input("Número (ex: 1) *")
-                    dsc_i = c2.text_input("Descrição da Iniciativa *")
-                    c3,c4 = st.columns(2)
-                    resp  = c3.text_input("Responsável")
-                    sts_i = c4.selectbox("Status", STATUS_OPTIONS)
+                    r1c1, r1c2, r1c3, r1c4 = st.columns([0.6, 2.8, 1.4, 1.2])
+                    num_i = r1c1.text_input("Nº *", placeholder="1")
+                    dsc_i = r1c2.text_input("Descrição da Iniciativa *")
+                    resp  = r1c3.text_input("Responsável(eis)", help="Separe por vírgula")
+                    sts_i = r1c4.selectbox("Status", STATUS_OPTIONS)
                     if st.form_submit_button("💾 Cadastrar Iniciativa", type="primary", use_container_width=True):
                         if not num_i.strip() or not dsc_i.strip():
                             st.error("Preencha Número e Descrição.")
@@ -924,8 +1075,8 @@ elif "Cadastro" in pagina:
 
     with t4:
         st.subheader("Editar ou Excluir OKR")
-        ne = st.selectbox("Núcleo", ["Todos"]+NUCLEOS, key="eo_n")
-        oe = get_okrs() if ne=="Todos" else get_okrs(ne)
+        ne = st.selectbox("Núcleo", NUCLEOS, key="eo_n")
+        oe = get_okrs(ne)
         if oe.empty:
             st.info("Nenhum OKR.")
         else:
@@ -940,7 +1091,7 @@ elif "Cadastro" in pagina:
                 nnu = c3.text_input("Número", value=er.numero)
                 nds = st.text_area("Descrição", value=er.descricao, height=70)
                 c4,c5,c6 = st.columns(3)
-                ng = c4.text_input("Gerente", value=er.gerente or "")
+                ng = c4.text_input("Gerente(s)", value=er.gerente or "", help="Separe múltiplos por vírgula")
                 try:    div = datetime.strptime(str(er.data_inicio),"%Y-%m-%d").date()
                 except: div = date.today()
                 try:    dfv = datetime.strptime(str(er.data_fim),"%Y-%m-%d").date()
@@ -958,8 +1109,8 @@ elif "Cadastro" in pagina:
 
     with t5:
         st.subheader("Editar ou Excluir KR")
-        nke = st.selectbox("Núcleo", ["Todos"]+NUCLEOS, key="ek_n")
-        oke = get_okrs() if nke=="Todos" else get_okrs(nke)
+        nke = st.selectbox("Núcleo", NUCLEOS, key="ek_n")
+        oke = get_okrs(nke)
         if oke.empty:
             st.info("Nenhum OKR.")
         else:
@@ -979,7 +1130,7 @@ elif "Cadastro" in pagina:
                     c3,c4,c5,c6 = st.columns(4)
                     nvi = c3.number_input("Valor Inicial", value=float(krr.valor_ini or 0))
                     nva = c4.number_input("Valor Alvo",    value=float(krr.valor_alvo or 100))
-                    ngk = c5.text_input("Gerente", value=krr.gerente_kr or "")
+                    ngk = c5.text_input("Gerente(s)", value=krr.gerente_kr or "", help="Separe por vírgula")
                     try:    dev = datetime.strptime(str(krr.data_entrega),"%Y-%m-%d").date()
                     except: dev = date(date.today().year,12,31)
                     nde = c6.date_input("Data Entrega", value=dev, key="ek_de")
@@ -994,8 +1145,8 @@ elif "Cadastro" in pagina:
 
     with t6:
         st.subheader("Editar ou Excluir Iniciativa")
-        nie = st.selectbox("Núcleo", ["Todos"]+NUCLEOS, key="ei_n")
-        oie = get_okrs() if nie=="Todos" else get_okrs(nie)
+        nie = st.selectbox("Núcleo", NUCLEOS, key="ei_n")
+        oie = get_okrs(nie)
         if oie.empty:
             st.info("Nenhum OKR.")
         else:
@@ -1019,7 +1170,7 @@ elif "Cadastro" in pagina:
                         nni = c1.text_input("Número", value=inir.numero)
                         ndi = c2.text_input("Descrição", value=inir.descricao)
                         c3,c4 = st.columns(2)
-                        nri = c3.text_input("Responsável", value=inir.responsavel or "")
+                        nri = c3.text_input("Responsável(eis)", value=inir.responsavel or "", help="Separe por vírgula")
                         si  = STATUS_OPTIONS.index(inir.status) if inir.status in STATUS_OPTIONS else 0
                         nsi = c4.selectbox("Status", STATUS_OPTIONS, index=si)
                         ci1,ci2 = st.columns(2)
@@ -1036,68 +1187,173 @@ elif "Cadastro" in pagina:
 # PÁGINA 3 — CHECK-IN
 # ══════════════════════════════════════════════
 elif "Check-in" in pagina:
-    st.markdown('<div class="sec-title">📝 Preenchimento Semanal de Check-in</div>', unsafe_allow_html=True)
+    st.markdown('<div class="sec-title">📝 Check-in Semanal</div>', unsafe_allow_html=True)
 
-    t1, t2 = st.tabs(["➕ Novo Check-in", "📋 Histórico e Edição"])
+    def quinzenas_proximas(n_meses=3):
+        """Retorna lista de datas das 1ª e 3ª quintas-feiras dos próximos n_meses."""
+        from calendar import monthrange
+        datas = []
+        hoje = date.today()
+        for delta in range(n_meses):
+            m = ((hoje.month - 1 + delta) % 12) + 1
+            a = hoje.year + (hoje.month - 1 + delta) // 12
+            dias = monthrange(a, m)[1]
+            quintas = [date(a, m, d) for d in range(1, dias+1)
+                       if date(a, m, d).weekday() == 3]
+            if len(quintas) >= 1: datas.append(quintas[0])
+            if len(quintas) >= 3: datas.append(quintas[2])
+        return sorted(set(datas))
+
+    t1, t2 = st.tabs(["📋 Preencher Check-ins", "🕓 Histórico e Edição"])
 
     with t1:
-        c1,c2 = st.columns(2)
-        cn  = c1.selectbox("Núcleo", NUCLEOS, key="ci_n")
-        oci = get_okrs(cn)
-        if oci.empty:
-            st.info(f"Nenhum OKR para {cn}.")
+        hc1, hc2, hc3 = st.columns([1, 1.2, 1.4])
+        cn_b = hc1.selectbox("Núcleo", NUCLEOS, key="ci_nucleo")
+
+        datas_q = quinzenas_proximas(3)
+        hoje = date.today()
+        # Mostra datas no formato dd/mm/yyyy — sem rótulo de "1ª quinta"
+        opcoes_dt = {d.strftime("%d/%m/%Y"): d for d in datas_q}
+        # Default: quinzena mais próxima da hoje
+        idx_def = 0
+        for i, d in enumerate(datas_q):
+            if d >= hoje:
+                idx_def = i
+                break
+        sel_dt_str = hc2.selectbox("Quinzena", list(opcoes_dt.keys()),
+                                   index=idx_def, key="ci_quinzena")
+        dt_b = opcoes_dt[sel_dt_str]
+
+        mostrar_pend = hc3.checkbox("Exibir só pendentes", value=False, key="ci_filtro")
+
+        krs_nucleo = run_query("""
+            SELECT kr.id, kr.codigo, kr.descricao, kr.valor_ini, kr.valor_alvo,
+                   okr.numero as okr_num, okr.descricao as okr_desc
+            FROM kr JOIN okr ON kr.okr_id = okr.id
+            WHERE okr.nucleo = ?
+            ORDER BY okr.numero, kr.codigo
+        """, (cn_b,))
+
+        if krs_nucleo.empty:
+            st.info(f"Nenhum KR cadastrado para {cn_b}.")
         else:
-            opci = {f"{r.numero} — {r.descricao[:55]} [{r.tipo}]": r.id for r in oci.itertuples()}
-            soci = c2.selectbox("OKR", list(opci.keys()), key="ci_okr")
-            kci  = get_krs(opci[soci])
-            if kci.empty:
-                st.info("Nenhum KR.")
+            feitos = run_query("SELECT DISTINCT kr_id FROM checkin WHERE data_ref=?", (str(dt_b),))
+            ids_feitos = set(feitos["kr_id"].tolist()) if not feitos.empty else set()
+
+            total_krs    = len(krs_nucleo)
+            total_feitos = len(ids_feitos & set(krs_nucleo["id"].tolist()))
+            total_pend   = total_krs - total_feitos
+            pct          = (total_feitos / total_krs * 100) if total_krs > 0 else 0
+            cor_p        = "#096B38" if pct == 100 else "#1857D4" if pct >= 50 else "#C48C00"
+
+            st.markdown(f"""
+            <div style="background:#F0F6FF;border-radius:10px;padding:10px 18px;margin-bottom:14px;
+                        border:1px solid #B8D0EE;display:flex;align-items:center;gap:16px;">
+              <div style="flex:1;">
+                <div style="font-size:0.78rem;font-weight:700;color:#0A1F5C;margin-bottom:5px;">
+                  {cn_b} — {sel_dt_str}
+                </div>
+                <div style="background:#B8D4F0;border-radius:99px;height:10px;overflow:hidden;">
+                  <div style="width:{pct:.0f}%;height:10px;border-radius:99px;
+                              background:linear-gradient(90deg,{cor_p},{cor_p}BB);"></div>
+                </div>
+              </div>
+              <div style="text-align:right;min-width:120px;">
+                <span style="font-size:1.5rem;font-weight:700;color:{cor_p};">{total_feitos}/{total_krs}</span>
+                <span style="font-size:0.72rem;color:#4A6080;display:block;">
+                  {"✅ Todos feitos!" if total_pend==0 else f"⏳ {total_pend} pendente{'s' if total_pend>1 else ''}"}
+                </span>
+              </div>
+            </div>
+            """, unsafe_allow_html=True)
+
+            krs_exibir = krs_nucleo[~krs_nucleo["id"].isin(ids_feitos)].copy() if mostrar_pend else krs_nucleo.copy()
+
+            if krs_exibir.empty:
+                st.success("✅ Todos os KRs já têm check-in para esta quinzena!")
             else:
-                opkci = {f"{r.codigo} — {r.descricao[:60]}": r.id for r in kci.itertuples()}
-                skci  = st.selectbox("KR", list(opkci.keys()), key="ci_kr")
-                krid  = opkci[skci]
-                krci  = kci[kci.id==krid].iloc[0]
-                chant = get_checkins(krid)
-                inis_ci = get_iniciativas(krid)
-                prog_kr  = calc_progresso_kr(krci.valor_ini, krci.valor_alvo, chant)
-                prog_ini = calc_progresso_iniciativas(inis_ci)
+                # Cabeçalho usando as MESMAS proporções das colunas do form abaixo
+                COL_W = [0.55, 2.8, 0.7, 0.8, 0.95, 1.1]
+                h_cols = st.columns(COL_W)
+                for col, lb in zip(h_cols, ["KR","DESCRIÇÃO","PROGRESSO","META","VALOR ATUAL","STATUS"]):
+                    col.markdown(
+                        f'<div style="background:#0A1F5C;color:#B8CDE8;font-size:0.69rem;font-weight:700;'
+                        f'letter-spacing:0.5px;text-transform:uppercase;padding:6px 4px;'
+                        f'text-align:center;border-radius:4px;">{lb}</div>',
+                        unsafe_allow_html=True,
+                    )
 
-                m1,m2,m3,m4,m5 = st.columns(5)
-                m1.metric("Valor Inicial",  f"{krci.valor_ini:.1f}")
-                m2.metric("Valor Alvo",     f"{krci.valor_alvo:.1f}")
-                m3.metric("Progresso KR",   f"{prog_kr:.1f}%")
-                m4.metric("Prog. Iniciativas", f"{prog_ini:.0f}%")
-                m5.metric("Check-ins",      len(chant))
+                with st.form("f_ci_lote", clear_on_submit=False):
+                    okr_ant = None
+                    inputs  = {}
 
-                st.markdown(barra_kr(prog_kr), unsafe_allow_html=True)
-                if not inis_ci.empty:
-                    n_c = len(inis_ci[inis_ci.status == "Concluído"])
-                    st.markdown(barra_ini(prog_ini, len(inis_ci), n_c), unsafe_allow_html=True)
+                    for row in krs_exibir.itertuples():
+                        if row.okr_num != okr_ant:
+                            okr_ant = row.okr_num
+                            st.markdown(
+                                f'<div style="background:#EAF1FB;border-left:4px solid #1857D4;'
+                                f'padding:5px 12px;font-size:0.8rem;font-weight:700;color:#0A1F5C;'
+                                f'margin:6px 0 0;border-radius:0 5px 5px 0;">'
+                                f'🎯 {row.okr_num} — {row.okr_desc[:75]}</div>',
+                                unsafe_allow_html=True,
+                            )
 
-                uv = float(krci.valor_ini)
-                if not chant.empty and chant.iloc[0]["valor_atual"] is not None:
-                    uv = float(chant.iloc[0]["valor_atual"])
+                        chkr  = get_checkins(row.id)
+                        uv    = float(row.valor_ini)
+                        if not chkr.empty and chkr.iloc[0]["valor_atual"] is not None:
+                            uv = float(chkr.iloc[0]["valor_atual"])
+                        prog  = calc_progresso_kr(row.valor_ini, row.valor_alvo, chkr)
+                        cor   = "#096B38" if prog >= 80 else "#1857D4" if prog >= 40 else "#C48C00"
+                        feito = row.id in ids_feitos
+                        badge = (' <span style="background:#D4EFE1;color:#096B38;border-radius:3px;'
+                                 'padding:1px 5px;font-size:0.62rem;font-weight:700;">✓</span>'
+                                 if feito else "")
 
-                st.markdown("---")
-                with st.form("f_ci", clear_on_submit=True):
-                    cc1,cc2,cc3 = st.columns(3)
-                    dr  = cc1.date_input("Data do Check-in *", value=date.today())
-                    sem = cc2.text_input("Semana (ex: Semana 12/2025)")
-                    sts = cc3.selectbox("Status do KR", STATUS_OPTIONS)
-                    vat = st.number_input(
-                        f"Valor Atual  (Inicial: {krci.valor_ini}  |  Alvo: {krci.valor_alvo})",
-                        value=uv, step=1.0)
-                    com = st.text_area("Comentário / Observações", height=80)
-                    if st.form_submit_button("💾 Registrar Check-in", type="primary", use_container_width=True):
-                        run_exec("INSERT INTO checkin(kr_id,data_ref,semana,valor_atual,status,comentario) VALUES(?,?,?,?,?,?)",
-                                 (krid,str(dr),sem.strip(),vat,sts,com.strip()))
-                        np_ = max(0,min(100,(vat-float(krci.valor_ini))/max(float(krci.valor_alvo)-float(krci.valor_ini),0.001)*100))
-                        st.success(f"✅ Check-in registrado! Progresso KR: **{np_:.1f}%**")
+                        g1, g2, g3, g4, g5, g6 = st.columns(COL_W)
+                        g1.markdown(
+                            f'<div style="padding-top:8px;font-weight:700;font-size:0.82rem;'
+                            f'color:#0A1F5C;">{row.codigo}{badge}</div>', unsafe_allow_html=True)
+                        g2.markdown(
+                            f'<div style="padding-top:8px;font-size:0.8rem;color:#2C3E6B;">'
+                            f'{row.descricao[:75]}</div>', unsafe_allow_html=True)
+                        g3.markdown(
+                            f'<div style="padding-top:4px;text-align:center;">'
+                            f'<div style="background:#B8D4F0;border-radius:99px;height:8px;overflow:hidden;">'
+                            f'<div style="width:{prog:.0f}%;height:8px;border-radius:99px;background:{cor};"></div>'
+                            f'</div><div style="font-size:0.7rem;font-weight:700;color:{cor};">{prog:.0f}%</div>'
+                            f'</div>', unsafe_allow_html=True)
+                        g4.markdown(
+                            f'<div style="padding-top:8px;font-size:0.75rem;color:#4A6080;text-align:center;">'
+                            f'{row.valor_ini:.0f}→{row.valor_alvo:.0f}</div>', unsafe_allow_html=True)
+                        val_w = g5.number_input("v", value=uv, step=1.0,
+                                                label_visibility="collapsed", key=f"val_{row.id}")
+                        sts_w = g6.selectbox("s", STATUS_OPTIONS,
+                                             label_visibility="collapsed", key=f"sts_{row.id}")
+                        inputs[row.id] = (val_w, sts_w)
+
+                    st.markdown("<br>", unsafe_allow_html=True)
+                    com_geral = st.text_input(
+                        "💬 Comentário geral (opcional)",
+                        placeholder="Ex: Dados consolidados, revisão de metas...",
+                        key="ci_com",
+                    )
+                    n = len(inputs)
+                    if st.form_submit_button(
+                        f"💾  Salvar {n} check-in{'s' if n>1 else ''}  —  {cn_b}  ·  {sel_dt_str}",
+                        type="primary", use_container_width=True,
+                    ):
+                        for kr_id, (val, sts) in inputs.items():
+                            run_exec(
+                                "INSERT INTO checkin(kr_id,data_ref,semana,valor_atual,status,comentario)"
+                                " VALUES(?,?,?,?,?,?)",
+                                (kr_id, str(dt_b), sel_dt_str, val, sts, com_geral.strip()),
+                            )
+                        st.success(f"✅ {n} check-in{'s' if n>1 else ''} registrado{'s' if n>1 else ''}!")
                         st.rerun()
 
     with t2:
-        st.subheader("Histórico de Check-ins")
-        h1,h2 = st.columns(2)
+        st.subheader("Histórico de Check-ins por KR")
+        h1, h2, h3 = st.columns(3)
         hn  = h1.selectbox("Núcleo", NUCLEOS, key="hi_n")
         oh  = get_okrs(hn)
         if oh.empty:
@@ -1110,37 +1366,36 @@ elif "Check-in" in pagina:
                 st.info("Nenhum KR.")
             else:
                 opkh = {f"{r.codigo} — {r.descricao[:50]}": r.id for r in kh.itertuples()}
-                skh  = st.selectbox("KR", list(opkh.keys()), key="hi_kr")
+                skh  = h3.selectbox("KR", list(opkh.keys()), key="hi_kr")
                 khid = opkh[skh]
                 chh  = get_checkins(khid)
                 if chh.empty:
                     st.info("Nenhum check-in registrado.")
                 else:
                     st.dataframe(
-                        chh[["data_ref","semana","valor_atual","status","comentario","criado_em"]].rename(columns={
-                            "data_ref":"Data","semana":"Semana","valor_atual":"Valor Atual",
-                            "status":"Status","comentario":"Comentário","criado_em":"Registrado em"}),
+                        chh[["data_ref","semana","valor_atual","status","comentario","criado_em"]].rename(
+                            columns={"data_ref":"Data","semana":"Quinzena","valor_atual":"Valor Atual",
+                                     "status":"Status","comentario":"Comentário","criado_em":"Registrado em"}),
                         use_container_width=True, hide_index=True)
 
                     st.markdown("#### ✏️ Editar Check-in")
-                    opch = {f"{r.data_ref}  ·  {r.semana or ''}  ·  Val: {r.valor_atual}  ·  {r.status}": r.id
-                            for r in chh.itertuples()}
+                    opch    = {f"{r.data_ref}  ·  Val: {r.valor_atual}  ·  {r.status}": r.id
+                               for r in chh.itertuples()}
                     sch     = st.selectbox("Selecione", list(opch.keys()), key="hi_ced")
                     chid_ed = opch[sch]; chr_ = chh[chh.id==chid_ed].iloc[0]
                     with st.form("f_ech"):
-                        ec1,ec2,ec3 = st.columns(3)
+                        ec1, ec2 = st.columns(2)
                         try:    drv = datetime.strptime(str(chr_.data_ref),"%Y-%m-%d").date()
                         except: drv = date.today()
                         ndr  = ec1.date_input("Data", value=drv, key="hi_dr")
-                        nsem = ec2.text_input("Semana", value=chr_.semana or "")
                         si   = STATUS_OPTIONS.index(chr_.status) if chr_.status in STATUS_OPTIONS else 0
-                        nsts = ec3.selectbox("Status", STATUS_OPTIONS, index=si)
+                        nsts = ec2.selectbox("Status", STATUS_OPTIONS, index=si)
                         nvat = st.number_input("Valor Atual", value=float(chr_.valor_atual or 0))
                         ncom = st.text_area("Comentário", value=chr_.comentario or "", height=60)
-                        es1,es2 = st.columns(2)
-                        if es1.form_submit_button("💾 Salvar Alterações", type="primary", use_container_width=True):
-                            run_exec("UPDATE checkin SET data_ref=?,semana=?,valor_atual=?,status=?,comentario=? WHERE id=?",
-                                     (str(ndr),nsem.strip(),nvat,nsts,ncom.strip(),chid_ed))
+                        es1, es2 = st.columns(2)
+                        if es1.form_submit_button("💾 Salvar", type="primary", use_container_width=True):
+                            run_exec("UPDATE checkin SET data_ref=?,valor_atual=?,status=?,comentario=? WHERE id=?",
+                                     (str(ndr),nvat,nsts,ncom.strip(),chid_ed))
                             st.success("✅ Atualizado!"); st.rerun()
                         if es2.form_submit_button("🗑️ Excluir", use_container_width=True):
                             run_exec("DELETE FROM checkin WHERE id=?", (chid_ed,))
@@ -1193,13 +1448,13 @@ elif "Dashboard" in pagina:
 
     # ── FILTROS
     fc1,fc2,fc3 = st.columns(3)
-    fn = fc1.selectbox("Núcleo", ["Todos"]+NUCLEOS, key="d_n")
+    fn = fc1.selectbox("Núcleo", NUCLEOS, key="d_n")
     ft = fc2.selectbox("Tipo",   ["Todos","Estratégico","Tático/Departamental"], key="d_t")
     fs = fc3.selectbox("Status", ["Todos"]+STATUS_OPTIONS, key="d_s")
 
     df_f = dp.copy() if not dp.empty else pd.DataFrame()
     if not df_f.empty:
-        if fn != "Todos": df_f = df_f[df_f.nucleo==fn]
+        df_f = df_f[df_f.nucleo==fn]
         if ft != "Todos": df_f = df_f[df_f.tipo==ft]
         if fs != "Todos": df_f = df_f[df_f.ultimo_status==fs]
 
@@ -1207,9 +1462,9 @@ elif "Dashboard" in pagina:
         st.warning("Nenhum dado com esses filtros."); st.stop()
 
     # Paleta de azuis coerente
-    BLUE_SCALE = ["#D6E8FA","#93C5FD","#4A9EE8","#2878D6","#1E5FBB","#0C2461"]
+    BLUE_SCALE = ["#D6E8FA","#93C5FD","#4A9EE8","#2878D6","#1857D4","#0A1F5C"]
     cores_status = {
-        "Concluído":    "#1E5FBB",
+        "Concluído":    "#1857D4",
         "Em Andamento": "#4A9EE8",
         "Não Iniciado": "#93C5FD",
         "Atrasado":     "#B91C1C",
@@ -1230,7 +1485,7 @@ elif "Dashboard" in pagina:
         ))
         fig1.add_trace(go.Bar(
             name="Prog. Iniciativas", x=pn["prog_ini"], y=pn["nucleo"],
-            orientation="h", marker_color="#D4A017",
+            orientation="h", marker_color="#C48C00",
             text=pn["prog_ini"].apply(lambda v: f"{v:.1f}%"), textposition="outside",
             visible="legendonly",
         ))
@@ -1238,7 +1493,7 @@ elif "Dashboard" in pagina:
             title="Progresso Médio por Núcleo",
             barmode="group", xaxis=dict(range=[0,120], title="%"),
             height=340, paper_bgcolor="white", plot_bgcolor="#F7F9FC",
-            font=dict(family="IBM Plex Sans", color="#0C2461"),
+            font=dict(family="IBM Plex Sans", color="#0A1F5C"),
             legend=dict(orientation="h", yanchor="bottom", y=1.02),
         )
         st.plotly_chart(fig1, use_container_width=True)
@@ -1249,7 +1504,7 @@ elif "Dashboard" in pagina:
         fig2 = px.pie(sc, names="Status", values="Qtd", title="Status dos KRs",
                       color="Status", color_discrete_map=cores_status, hole=0.42)
         fig2.update_layout(height=340, paper_bgcolor="white",
-                           font=dict(family="IBM Plex Sans", color="#0C2461"))
+                           font=dict(family="IBM Plex Sans", color="#0A1F5C"))
         st.plotly_chart(fig2, use_container_width=True)
 
     # ── BARRAS: KR vs Iniciativas
@@ -1269,7 +1524,7 @@ elif "Dashboard" in pagina:
     fig3.add_trace(go.Bar(
         name="Prog. Iniciativas",
         x=dfs["prog_ini"], y=dfs["label"], orientation="h",
-        marker_color="#D4A017",
+        marker_color="#C48C00",
         text=dfs["prog_ini"].apply(lambda v: f"{v:.1f}%"),
         textposition="outside",
         hovertemplate="<b>%{y}</b><br>Iniciativas: %{x:.1f}%<extra></extra>",
@@ -1283,7 +1538,7 @@ elif "Dashboard" in pagina:
         yaxis=dict(automargin=True),
         height=max(340, len(dfs)*48+80),
         paper_bgcolor="white", plot_bgcolor="#F7F9FC",
-        font=dict(family="IBM Plex Sans", color="#0C2461"),
+        font=dict(family="IBM Plex Sans", color="#0A1F5C"),
         legend=dict(orientation="h", yanchor="bottom", y=1.01),
         margin=dict(l=10, r=80),
     )
@@ -1313,7 +1568,7 @@ elif "Dashboard" in pagina:
                 fig4.update_layout(
                     height=380, yaxis=dict(range=[0,110]),
                     paper_bgcolor="white", plot_bgcolor="#F7F9FC",
-                    font=dict(family="IBM Plex Sans", color="#0C2461"),
+                    font=dict(family="IBM Plex Sans", color="#0A1F5C"),
                 )
                 st.plotly_chart(fig4, use_container_width=True)
 
@@ -1323,7 +1578,7 @@ elif "Dashboard" in pagina:
         ij = all_inis.merge(
             run_query("SELECT kr.id as kr_id, okr.nucleo FROM kr JOIN okr ON kr.okr_id=okr.id"),
             on="kr_id")
-        if fn != "Todos": ij = ij[ij.nucleo==fn]
+        ij = ij[ij.nucleo==fn]
         if not ij.empty:
             pi = ij["status"].value_counts().reset_index()
             pi.columns = ["Status","Qtd"]
@@ -1333,7 +1588,7 @@ elif "Dashboard" in pagina:
             fig5.update_layout(
                 height=290, showlegend=False,
                 paper_bgcolor="white", plot_bgcolor="#F7F9FC",
-                font=dict(family="IBM Plex Sans", color="#0C2461"),
+                font=dict(family="IBM Plex Sans", color="#0A1F5C"),
             )
             st.plotly_chart(fig5, use_container_width=True)
 
